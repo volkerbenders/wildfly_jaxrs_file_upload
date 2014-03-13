@@ -19,20 +19,21 @@
         <slf4j.version>1.7.5</slf4j.version>
         <maven.war.plugin.version>2.3</maven.war.plugin.version>
         <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
-
+        <hibernate.version>4.3.1.Final</hibernate.version>
         <maven.wildfly.plugin.version>1.0.1.Final</maven.wildfly.plugin.version>
+
         <mysql.groupId>mysql</mysql.groupId>
         <mysql.artifactId>mysql-connector-java</mysql.artifactId>
         <mysql.driver.version>5.1.26</mysql.driver.version>
         <mysql.driver.name>${mysql.artifactId}-${mysql.driver.version}.jar</mysql.driver.name>
 
         <!--
-            these paramerters should no go here but in ~/.m2/settings.xml
+            these paramerters should not go here but in ~/.m2/settings.xml
             they're here just to give a complete picture
         -->
         <mysql.username>volker</mysql.username>
         <mysql.password>ncc1701f</mysql.password>
-        <hibernate.version>4.3.1.Final</hibernate.version>
+        <db.jdbc.url>jdbc:mysql://127.0.0.1:3306/volker_tanken</db.jdbc.url>
     </properties>
 
     <build>
@@ -85,7 +86,7 @@
                                 <configuration>
                                     <groupId>${mysql.groupId}</groupId>
                                     <artifactId>${mysql.artifactId}</artifactId>
-                                    <name>mysql-connector-java-${mysql.driver.version}.jar</name>
+                                    <name>${mysql.artifactId}-${mysql.driver.version}.jar</name>
                                 </configuration>
                             </execution>
 
@@ -100,12 +101,12 @@
                                     <resources>
                                         <resource>
                                             <properties>
-                                                <connection-url>jdbc:mysql://127.0.0.1:3306/volker_tanken</connection-url>
+                                                <connection-url>${db.jdbc.url}</connection-url>
                                                 <jndi-name>java:jboss/jdbc/tanken</jndi-name>
                                                 <enabled>true</enabled>
                                                 <enable>true</enable>
-                                                <user-name>volker</user-name>
-                                                <password>ncc1701f</password>
+                                                <user-name>${mysql.username}</user-name>
+                                                <password>${mysql.password}</password>
                                                 <driver-name>${mysql.driver.name}</driver-name>
                                                 <use-ccm>false</use-ccm>
                                             </properties>
