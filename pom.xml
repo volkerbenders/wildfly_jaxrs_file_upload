@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.vbenders.jee7</groupId>
+    <artifactId>wildfly_mysql_driver</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>${project.artifactId}</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7</java.version>
+        <jee.version>7.0</jee.version>
+        <logback.version>1.0.13</logback.version>
+        <slf4j.version>1.7.5</slf4j.version>
+        <maven.war.plugin.version>2.3</maven.war.plugin.version>
+        <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+
+        <maven.wildfly.plugin.version>1.0.1.Final</maven.wildfly.plugin.version>
+        <mysql.groupId>mysql</mysql.groupId>
+        <mysql.artifactId>mysql-connector-java</mysql.artifactId>
+        <mysql.driver.version>5.1.26</mysql.driver.version>
+        <mysql.driver.name>${mysql.artifactId}-${mysql.driver.version}.jar</mysql.driver.name>
+
+        <!--
+            these paramerters should no go here but in ~/.m2/settings.xml
+            they're here just to give a complete picture
+        -->
+        <mysql.username>volker</mysql.username>
+        <mysql.password>ncc1701f</mysql.password>
+        <hibernate.version>4.3.1.Final</hibernate.version>
+    </properties>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven.war.plugin.version}</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>wildfly-local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-maven-plugin</artifactId>
+                        <version>${maven.wildfly.plugin.version}</version>
+                        <configuration>
+                            <jboss-home>${wildfly-home}</jboss-home>
+                        </configuration>
+                        <executions>
+                            <!-- deploy mysql driver -->
+                            <execution>
+                                <id>deploy_jdbc_driver</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>deploy-artifact</goal>
+                                </goals>
+                                <configuration>
+                                    <groupId>${mysql.groupId}</groupId>
+                                    <artifactId>${mysql.artifactId}</artifactId>
+                                    <name>mysql-connector-java-${mysql.driver.version}.jar</name>
+                                </configuration>
+                            </execution>
+
+                            <execution>
+                                <id>add_datasource</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>add-resource</goal>
+                                </goals>
+                                <configuration>
+                                    <address>subsystem=datasources,data-source=myDS</address>
+                                    <resources>
+                                        <resource>
+                                            <properties>
+                                                <connection-url>jdbc:mysql://127.0.0.1:3306/volker_tanken</connection-url>
+                                                <jndi-name>java:jboss/jdbc/tanken</jndi-name>
+                                                <enabled>true</enabled>
+                                                <enable>true</enable>
+                                                <user-name>volker</user-name>
+                                                <password>ncc1701f</password>
+                                                <driver-name>${mysql.driver.name}</driver-name>
+                                                <use-ccm>false</use-ccm>
+                                            </properties>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                            <!-- deploy the application -->
+                            <execution>
+                                <id>deploy_application</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-web-api</artifactId>
+            <version>${jee.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.driver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>${hibernate.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,24 @@
+#
+# list of files and folders to ignore
+#   src: https://github.com/github/gitignore
+#
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+
+#
+# IntelliJ files
+#
+*.iml
+.idea
+
+#
+# exclude mac specific stuff
+#
+.DS_Store
+
+#
+# EOF
+#
