@@ -31,9 +31,9 @@
             these paramerters should not go here but in ~/.m2/settings.xml
             they're here just to give a complete picture
         -->
-        <mysql.username>volker</mysql.username>
-        <mysql.password>ncc1701f</mysql.password>
-        <db.jdbc.url>jdbc:mysql://127.0.0.1:3306/volker_tanken</db.jdbc.url>
+        <mysql.username>DB_USER</mysql.username>
+        <mysql.password>PASSWORD_DB_USER</mysql.password>
+        <db.jdbc.url>jdbc:mysql://127.0.0.1:3306/DB_SCHEMA_NAME</db.jdbc.url>
     </properties>
 
     <build>
