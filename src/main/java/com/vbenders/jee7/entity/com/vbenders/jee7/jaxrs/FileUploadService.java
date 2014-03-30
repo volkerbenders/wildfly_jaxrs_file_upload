@@ -7,11 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -20,15 +21,11 @@ import java.util.Map;
 /**
  * Created by mupfel on 30.03.14.
  */
-@Path("/res")
-public class MyResource {
+@Path("/file")
+public class FileUploadService {
     public static final String UPLOADED_FILE_PARAMETER_NAME = "file";
     private String data;
-    private static  final Logger LOGGER = LoggerFactory.getLogger(MyResource.class);
-    @GET
-    public void echo(){
-        System.err.println(">>>> Hello!");
-    }
+    private static  final Logger LOGGER = LoggerFactory.getLogger(FileUploadService.class);
 
     @Path("/upload")
     @POST
@@ -40,24 +37,39 @@ public class MyResource {
         List<InputPart> inputParts = uploadForm.get(UPLOADED_FILE_PARAMETER_NAME);
 
         for (InputPart inputPart : inputParts){
-
-//            MultivaluedMap<String, String>
             MultivaluedMap<String, String> headers = inputPart.getHeaders();
             String filename = getFileName(headers);
-             LOGGER.info(">>>> upload filename " + filename);
-//convert the uploaded file to inputstream
+            LOGGER.info(">>>> upload filename " + filename);
+
             try{
                 InputStream inputStream = inputPart.getBody(InputStream.class,null);
 
                 byte [] bytes = IOUtils.toByteArray(inputStream);
 
                 LOGGER.info(">>> File '{}' has been read, size: #{} bytes", filename, bytes.length);
+                writeFile(bytes, "/tmp/" + filename);
             } catch (IOException e) {
-                e.printStackTrace();
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
+
         }
         return Response.status(Response.Status.OK).build();
+    }
+
+    private void writeFile(byte[] content, String filename) throws IOException {
+        LOGGER.info(">>> writing #{} bytes to: {}", content.length, filename);
+        File file = new File(filename);
+
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        FileOutputStream fop = new FileOutputStream(file);
+
+        fop.write(content);
+        fop.flush();
+        fop.close();
+        LOGGER.info(">>> writing complete: {}", filename);
     }
 
     private String getFileName(MultivaluedMap<String, String> headers) {
@@ -68,11 +80,15 @@ public class MyResource {
 
                 String[] name = filename.split("=");
 
-                String finalFileName = name[1].trim().replaceAll("\"", "");
+                String finalFileName = sanitizeFilename(name[1]);
                 return finalFileName;
             }
         }
         return "unknown";
+    }
+
+    private String sanitizeFilename(String s) {
+        return s.trim().replaceAll("\"", "");
     }
 
 }
