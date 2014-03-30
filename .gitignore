@@ -19,6 +19,11 @@ release.properties
 #
 .DS_Store
 
+# 
+# exclude misc. stuff
+#
+tmp/
+
 #
 # EOF
 #
