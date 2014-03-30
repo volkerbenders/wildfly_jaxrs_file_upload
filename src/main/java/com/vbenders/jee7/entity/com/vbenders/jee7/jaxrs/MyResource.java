@@ -23,15 +23,11 @@ import java.util.Map;
 /**
  * Created by mupfel on 30.03.14.
  */
-@Path("/res")
+@Path("/file")
 public class MyResource {
     public static final String UPLOADED_FILE_PARAMETER_NAME = "file";
     private String data;
     private static  final Logger LOGGER = LoggerFactory.getLogger(MyResource.class);
-    @GET
-    public void echo(){
-        System.err.println(">>>> Hello!");
-    }
 
     @Path("/upload")
     @POST
@@ -43,25 +39,18 @@ public class MyResource {
         List<InputPart> inputParts = uploadForm.get(UPLOADED_FILE_PARAMETER_NAME);
 
         for (InputPart inputPart : inputParts){
-
-//            MultivaluedMap<String, String>
             MultivaluedMap<String, String> headers = inputPart.getHeaders();
             String filename = getFileName(headers);
-             LOGGER.info(">>>> upload filename " + filename);
-//convert the uploaded file to inputstream
+            LOGGER.info(">>>> upload filename " + filename);
 
             try{
                 InputStream inputStream = inputPart.getBody(InputStream.class,null);
 
-
                 byte [] bytes = IOUtils.toByteArray(inputStream);
 
                 LOGGER.info(">>> File '{}' has been read, size: #{} bytes", filename, bytes.length);
-                LOGGER.info("rwading ok, lets write..");
                 writeFile(bytes, "/tmp/" + filename);
-
             } catch (IOException e) {
-                e.printStackTrace();
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
@@ -93,11 +82,15 @@ public class MyResource {
 
                 String[] name = filename.split("=");
 
-                String finalFileName = name[1].trim().replaceAll("\"", "");
+                String finalFileName = sanitizeFilename(name[1]);
                 return finalFileName;
             }
         }
         return "unknown";
+    }
+
+    private String sanitizeFilename(String s) {
+        return s.trim().replaceAll("\"", "");
     }
 
 }
