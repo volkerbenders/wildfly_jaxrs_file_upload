@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.vbenders.jee7</groupId>
-    <artifactId>wildfly_jaxrs</artifactId>
+    <artifactId>wildfly_jaxrs_file_upload</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 

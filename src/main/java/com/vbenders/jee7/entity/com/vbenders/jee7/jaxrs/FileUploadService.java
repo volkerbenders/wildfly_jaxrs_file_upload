@@ -5,10 +5,8 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedMap;
@@ -21,13 +19,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by mupfel on 30.03.14.
+ * Created by volker on 30.03.14.
  */
 @Path("/file")
-public class MyResource {
+public class FileUploadService {
     public static final String UPLOADED_FILE_PARAMETER_NAME = "file";
+    public static final String UPLOAD_DIR = "/tmp";
     private String data;
-    private static  final Logger LOGGER = LoggerFactory.getLogger(MyResource.class);
+    private static  final Logger LOGGER = LoggerFactory.getLogger(FileUploadService.class);
 
     @Path("/upload")
     @POST
@@ -41,7 +40,6 @@ public class MyResource {
         for (InputPart inputPart : inputParts){
             MultivaluedMap<String, String> headers = inputPart.getHeaders();
             String filename = getFileName(headers);
-            LOGGER.info(">>>> upload filename " + filename);
 
             try{
                 InputStream inputStream = inputPart.getBody(InputStream.class,null);
@@ -49,13 +47,22 @@ public class MyResource {
                 byte [] bytes = IOUtils.toByteArray(inputStream);
 
                 LOGGER.info(">>> File '{}' has been read, size: #{} bytes", filename, bytes.length);
-                writeFile(bytes, "/tmp/" + filename);
+                writeFile(bytes, getServerFilename(filename));
             } catch (IOException e) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
             }
 
         }
         return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Buil filename local to the server.
+     * @param filename
+     * @return
+     */
+    private String getServerFilename(String filename) {
+        return UPLOAD_DIR + "/"+filename;
     }
 
     private void writeFile(byte[] content, String filename) throws IOException {
@@ -74,6 +81,11 @@ public class MyResource {
         LOGGER.info(">>> writing complete: {}", filename);
     }
 
+    /**
+     * Extract filename from HTTP heaeders.
+     * @param headers
+     * @return
+     */
     private String getFileName(MultivaluedMap<String, String> headers) {
         String[] contentDisposition = headers.getFirst("Content-Disposition").split(";");
 
