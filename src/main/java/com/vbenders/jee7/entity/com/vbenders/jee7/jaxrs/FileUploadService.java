@@ -19,11 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by mupfel on 30.03.14.
+ * Created by volker on 30.03.14.
  */
 @Path("/file")
 public class FileUploadService {
     public static final String UPLOADED_FILE_PARAMETER_NAME = "file";
+    public static final String UPLOAD_DIR = "/tmp";
     private String data;
     private static  final Logger LOGGER = LoggerFactory.getLogger(FileUploadService.class);
 
@@ -39,7 +40,6 @@ public class FileUploadService {
         for (InputPart inputPart : inputParts){
             MultivaluedMap<String, String> headers = inputPart.getHeaders();
             String filename = getFileName(headers);
-            LOGGER.info(">>>> upload filename " + filename);
 
             try{
                 InputStream inputStream = inputPart.getBody(InputStream.class,null);
@@ -49,11 +49,19 @@ public class FileUploadService {
                 LOGGER.info(">>> File '{}' has been read, size: #{} bytes", filename, bytes.length);
                 writeFile(bytes, "/tmp/" + filename);
             } catch (IOException e) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
             }
-
         }
         return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Buil filename local to the server.
+     * @param filename
+     * @return
+     */
+    private String getServerFilename(String filename) {
+        return UPLOAD_DIR + "/"+filename;
     }
 
     private void writeFile(byte[] content, String filename) throws IOException {
@@ -72,6 +80,11 @@ public class FileUploadService {
         LOGGER.info(">>> writing complete: {}", filename);
     }
 
+    /**
+     * Extract filename from HTTP heaeders.
+     * @param headers
+     * @return
+     */
     private String getFileName(MultivaluedMap<String, String> headers) {
         String[] contentDisposition = headers.getFirst("Content-Disposition").split(";");
 
